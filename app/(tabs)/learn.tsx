@@ -13,39 +13,60 @@ export default function LearnScreen() {
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState('');
 
   const aiMutation = useMutation({
     mutationFn: async () => {
       setIsProcessing(true);
       setResult('');
+      setError('');
       
-      const prompt = mode === 'explain' 
-        ? `Explain the following topic in simple terms suitable for a Grade 10-12 student. Use examples and bullet points where helpful: ${input}`
-        : `Summarize the following study notes concisely, reducing the content by about 50% while keeping all key facts: ${input}`;
+      try {
+        const prompt = mode === 'explain' 
+          ? `Please explain the following topic in simple, easy-to-understand terms suitable for a high school student. Use examples, analogies, and bullet points where helpful to make it clear and memorable:\n\n"${input}"\n\nProvide a comprehensive but concise explanation.`
+          : `Please summarize the following text into key points and main ideas. Reduce the content by about 50% while keeping all essential information. Format the summary with bullet points for easy memorization:\n\n"${input}"\n\nMake it concise and easy to remember.`;
 
-      const { text } = await blink.ai.generateText({
-        prompt,
-        maxTokens: 500,
-        temperature: 0.7,
-      });
-      
-      return text;
+        console.log('Calling Blink AI with prompt...');
+        const response = await blink.ai.generateText({
+          prompt,
+          maxTokens: 800,
+          temperature: 0.7,
+        });
+
+        console.log('AI Response:', response);
+        
+        if (response && response.text) {
+          setResult(response.text);
+        } else {
+          setError('No response received from AI');
+        }
+      } catch (err) {
+        console.error('AI Error:', err);
+        setError(`Error: ${err instanceof Error ? err.message : 'Failed to process request'}`);
+      } finally {
+        setIsProcessing(false);
+      }
     },
-    onSuccess: (text) => {
-      setResult(text);
+    onError: (error) => {
+      console.error('Mutation error:', error);
+      setError(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setIsProcessing(false);
     },
-    onError: () => setIsProcessing(false),
   });
 
   const handleAction = () => {
-    if (!input.trim()) return;
+    if (!input.trim()) {
+      setError('Please enter some text first');
+      return;
+    }
+    setError('');
     aiMutation.mutate();
   };
 
   const reset = () => {
     setInput('');
     setResult('');
+    setError('');
   };
 
   return (
@@ -54,14 +75,14 @@ export default function LearnScreen() {
         <View style={styles.modeToggle}>
           <Pressable 
             style={[styles.modeButton, mode === 'explain' && styles.modeButtonActive]} 
-            onPress={() => { setMode('explain'); setResult(''); setInput(''); }}
+            onPress={() => { setMode('explain'); setResult(''); setInput(''); setError(''); }}
           >
             <Ionicons name="bulb-outline" size={20} color={mode === 'explain' ? colors.white : colors.textSecondary} />
             <Text style={[styles.modeButtonText, mode === 'explain' && styles.modeButtonTextActive]}>Explain</Text>
           </Pressable>
           <Pressable 
             style={[styles.modeButton, mode === 'summarize' && styles.modeButtonActive]} 
-            onPress={() => { setMode('summarize'); setResult(''); setInput(''); }}
+            onPress={() => { setMode('summarize'); setResult(''); setInput(''); setError(''); }}
           >
             <Ionicons name="document-text-outline" size={20} color={mode === 'summarize' ? colors.white : colors.textSecondary} />
             <Text style={[styles.modeButtonText, mode === 'summarize' && styles.modeButtonTextActive]}>Summarize</Text>
@@ -88,13 +109,24 @@ export default function LearnScreen() {
                 variant="primary" 
                 onPress={handleAction} 
                 loading={isProcessing}
-                disabled={!input.trim()}
+                disabled={!input.trim() || isProcessing}
               >
                 {mode === 'explain' ? 'Explain It' : 'Summarize'}
               </Button>
             </View>
           </Card.Content>
         </Card>
+
+        {error && (
+          <Card style={styles.errorCard}>
+            <Card.Content>
+              <View style={styles.errorContent}>
+                <Ionicons name="alert-circle" size={20} color={colors.error} />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            </Card.Content>
+          </Card>
+        )}
 
         {isProcessing && (
           <View style={styles.loadingContainer}>
@@ -117,7 +149,7 @@ export default function LearnScreen() {
               <Text style={styles.resultText}>{result}</Text>
             </Card.Content>
             <Card.Footer>
-              <Button variant="outline" size="sm" onPress={() => {}}>Copy Result</Button>
+              <Button variant="outline" size="sm" onPress={reset}>New Input</Button>
             </Card.Footer>
           </Card>
         )}
@@ -184,6 +216,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: spacing.md,
+  },
+  errorCard: {
+    backgroundColor: colors.errorTint,
+    borderColor: colors.error,
+    borderWidth: 1,
+    marginBottom: spacing.xl,
+  },
+  errorContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  errorText: {
+    ...typography.body,
+    color: colors.error,
+    flex: 1,
   },
   loadingContainer: {
     padding: spacing.xl,
