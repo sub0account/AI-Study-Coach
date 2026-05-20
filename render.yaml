@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: ai-study-coach
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build:web
+    startCommand: npx serve -s dist -l 3000
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: EXPO_NO_TELEMETRY
+        value: "1"
+      - key: EXPO_PUBLIC_OPENAI_API_KEY
+        sync: false
+      - key: EXPO_PUBLIC_BLINK_PROJECT_ID
+        value: ai-study-coach-4q81bc8z
+      - key: EXPO_PUBLIC_BLINK_PUBLISHABLE_KEY
+        value: blnk_pk_qLKmPsvlOLFD52SgZvlzn3C8G1WvpXWY

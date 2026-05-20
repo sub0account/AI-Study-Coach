@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - EXPO_NO_TELEMETRY=1
+      - EXPO_PUBLIC_OPENAI_API_KEY=${EXPO_PUBLIC_OPENAI_API_KEY}
+      - EXPO_PUBLIC_BLINK_PROJECT_ID=${EXPO_PUBLIC_BLINK_PROJECT_ID}
+      - EXPO_PUBLIC_BLINK_PUBLISHABLE_KEY=${EXPO_PUBLIC_BLINK_PUBLISHABLE_KEY}
+    volumes:
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped

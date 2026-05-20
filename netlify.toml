@@ -1,0 +1,12 @@
+[build]
+command = "npm run build:web"
+publish = "dist"
+node_version = "20"
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+
+[env.production]
+VARS = { EXPO_NO_TELEMETRY = "1" }

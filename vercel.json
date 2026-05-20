@@ -1,0 +1,16 @@
+{
+  "buildCommand": "npm install && npm run build:web",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "env": {
+    "NODE_ENV": "production",
+    "EXPO_NO_TELEMETRY": "1"
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html",
+      "status": 200
+    }
+  ]
+}
