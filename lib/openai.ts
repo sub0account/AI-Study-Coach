@@ -17,7 +17,8 @@ export interface AIGenerationResult {
 }
 
 // Read the API key from environment variables
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+// For Expo, use EXPO_PUBLIC_ prefix to expose to client
+const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 /**
@@ -34,7 +35,9 @@ export async function generateTextWithOpenAI(
   try {
     // Validate environment variables
     if (!OPENAI_API_KEY) {
-      throw new Error('OpenAI API key is missing. Please set the OPENAI_API_KEY environment variable.');
+      throw new Error(
+        'OpenAI API key is missing. Please set the EXPO_PUBLIC_OPENAI_API_KEY environment variable in your .env.local file.'
+      );
     }
 
     // Validate input
